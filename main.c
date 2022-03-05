@@ -25,9 +25,9 @@ struct contato {
   int tel_comercial;
   int tel_celular;
   Data aniversario;
-  Data primeiro_encontro;
-  char local_primeiro_encontro[255];
-  char tipo_relacao[10];
+  int ano_primeiro_encontro;
+  char local_primeiro_encontro[3];
+  char tipo_relacao;
   union {
     char local_trab[100];
     char local_com[100];
@@ -42,63 +42,58 @@ struct node {
 };
 typedef struct node Node;
 
-// funcoes
+FILE *openFile(const char *file, const char *mode);
+Node *arqBinarioLista(Node *lst, FILE *fin);
+Node *incluirContato(Node *lst);
+void exibeDadosContato(Node *lst, int dia, int mes, int ano);
+void exibeDadosContatos(Node *lst);
+void exibe3em3(Contato *lst);
+void exibeDadosParentes(Node *lst);
+void exibeAniversariantesMes(Node *lst, int mes);
+void consultaAniversariantes(Node *lst, int dia, int mes, int ano);
+void geraArquivoBackUp(Node *lst);
+void geraArquivo(Node *lst);
+int consultaNome(Node *lst, char *nomeInput);
+void consultaMesAniv(Node *lst, int mesInput);
+void consultaTipoRelacao(Node *lst, char tipoRelacaoInput);
+void consultaTipoRelacaoEMesAniv(Node *lst, char tipoRelacaoInput,int mesInput);
+Node *alteraNome(Node *lst, char *nome);
+Node *alteraCodigo(Node *lst, int codigo);
+Node *alteraContato(Node *lst);
+Node *altera(Node *lst);
+Node *excluiNome(Node *lst, char *nome);
+Node *excluiCodigo(Node *lst, int codigo);
+Node *excluirContato(Node *lst);
 void display_menu(void);
 void display_menu_2(void);
 void printprint(void);
-
-FILE *openFile(const char *file, const char *mode);
-Node *arqBinarioLista(Node *lst, FILE *fin);
-void geraArquivo(Node *lst);
-void geraArquivoBackUp(Node *lst);
-
-void exibeDadosContatos(Node *lst);
-
-Node *incluirContato(Node *lst);
-
-Node *excluirContato(Node *lst);
-
-int consultaNome(Node *lst, char *nomeInput);
-void consultaMesAniv(Node *lst, int mesInput);
-void consultaTipoRelacao(Node *lst, char *tipoRelacaoInput);
-void consultaTipoRelacaoEMesAniv(Node *lst, char *tipoRelacaoInput,
-                                 int mesInput);
-void consultaAniversariantes(Node *lst, int dia, int mes, int ano);
-
-Node *excluiNome(Node *lst, char *nome);
-Node *excluiCodigo(Node *lst, int codigo);
-
-Node *alteraContato(Node *lst);
-Node *altera(Node *lst);
 int retornaCodigo(Node *lst);
-void exibe3em3(Contato *lst);
-void exibeDadosContato(Node *lst, int dia, int mes, int ano);
-void exibeAniversariantesMes(Node *lst, int mes);
-void exibeDadosParentes(Node *lst);
-
 void converteDataNascimento(char *data, Data * d);
-/*-----------------------------------------------------------------------------*/
+
 int main(void) {
-  printprint();
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
-  printf("Dia (hoje): %d/%02d/%02d\n", tm.tm_mday, tm.tm_mon + 1,
-         tm.tm_year + 1900);
   FILE *arqBinario;
   Node *lst = NULL;
   int choice, choice2;
   int fim = 0;
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  
+  printprint();
+  printf("Dia (hoje): %d/%02d/%02d\n", tm.tm_mday, tm.tm_mon + 1,
+         tm.tm_year + 1900);
+  
   arqBinario = openFile("calendario.dat", "rb");
   if (arqBinario != NULL) {
     lst = arqBinarioLista(lst, arqBinario);
     fclose(arqBinario);
-    // checar aniversariante
     consultaAniversariantes(lst, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
   }
 
   while (fim == 0) {
+    
     display_menu();
     scanf("%d", &choice);
+    
     switch (choice) {
     case 1:
       lst = incluirContato(lst);
@@ -107,7 +102,8 @@ int main(void) {
     case 2:
       display_menu_2();
       scanf("%d", &choice2);
-      char nomeInput[100], tipoRelacaoInput[10];
+      char nomeInput[100];
+      char tipoRelacaoInput;
       int mesInput;
       switch (choice2) {
       case 1:
@@ -121,45 +117,45 @@ int main(void) {
         consultaMesAniv(lst, mesInput);
         break;
       case 3:
-        printf("Insira tipo relacao: ");
-        scanf(" %[^\n]", tipoRelacaoInput);
+        printf("tipo de relacao ('A'- amigo,'P' - parente,'C' - comercial,'T' - trabalho):");
+        scanf(" %c", &tipoRelacaoInput);
         consultaTipoRelacao(lst, tipoRelacaoInput);
         break;
       case 4:
-        printf("Insira tipo relacao: ");
-        scanf(" %[^\n]", tipoRelacaoInput);
+        printf("tipo de relacao ('A'- amigo,'P' - parente,'C' - comercial,'T' - trabalho):");
+        scanf(" %c", &tipoRelacaoInput);
         printf("Insira mes: ");
         scanf("%d", &mesInput);
         consultaTipoRelacaoEMesAniv(lst, tipoRelacaoInput, mesInput);
         break;
       default:
-        printf("ERROR - ENTER A VALID OPTION");
+        printf("\nERRO - INSIRA UMA OPCAO VALIDA\n");
         break;
       }
       break;
     case 3:
-      printf("FUNCAO_OP_3");
       lst = alteraContato(lst);
+      printf("\nContato alterado :)\n");
       break;
     case 4:
-      printf("FUNCAO_OP_4");
       lst = excluirContato(lst);
+      printf("\nContato excluido :)\n");
       break;
-    case 5: // listar
+    case 5: 
       printf("Listando ...\n");
       exibeDadosContato(lst, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
       break;
     case 6:
-      printf("FUNCAO_OP_6");
       geraArquivoBackUp(lst);
+      printf("\nArquivo Back Up gerado com sucesso :)\n");
       break;
     case 7:
       geraArquivo(lst);
-      printf("\nFinalizando programa ...");
+      printf("\nFinalizando programa ...\nprograma finalizado :)");
       fim = 1;
       break;
     default:
-      printf("ERROR - ENTER A VALID OPTION");
+      printf("\nERRO - INSIRA UMA OPCAO VALIDA\n");
       break;
     }
     printf("\n---------------------------------------------\n\n");
@@ -186,9 +182,7 @@ Node *arqBinarioLista(Node *lst, FILE *fin) { // file -> struct node
   Node *current = NULL;
   Node *head = lst;
 
-  // FILE READING ...
   while (fread(tmp->info, sizeof(Contato), 1, fin)) {
-    // CRIACAO DO NOVO BLOCK
     novo = (Node *)malloc(sizeof(Node));
     if (!novo)
       exit(1);
@@ -197,16 +191,10 @@ Node *arqBinarioLista(Node *lst, FILE *fin) { // file -> struct node
       exit(1);
     novo->prox = NULL;
 
-    // PASSAGEM DE DADOS
-    // codigo
     novo->info->id = tmp->info->id;
-    // nome
     strcpy(novo->info->nome, tmp->info->nome);
-    // apelido
     strcpy(novo->info->apelido, tmp->info->apelido);
-    // sexo
     novo->info->sexo = tmp->info->sexo;
-    // endereco
     strcpy(novo->info->apelido, tmp->info->apelido);
     novo->info->numero = tmp->info->numero;
     strcpy(novo->info->complemento, tmp->info->complemento);
@@ -214,28 +202,20 @@ Node *arqBinarioLista(Node *lst, FILE *fin) { // file -> struct node
     strcpy(novo->info->cidade, tmp->info->cidade);
     strcpy(novo->info->uf, tmp->info->uf);
     novo->info->cep = tmp->info->cep;
-    // telefone
     novo->info->tel_residencia = tmp->info->tel_residencia;
     novo->info->tel_comercial = tmp->info->tel_comercial;
     novo->info->tel_celular = tmp->info->tel_celular;
-    // data_aniversario
     novo->info->aniversario.dia = tmp->info->aniversario.dia;
     novo->info->aniversario.mes = tmp->info->aniversario.mes;
     novo->info->aniversario.ano = tmp->info->aniversario.ano;
-    // primeiro_encontro
-    novo->info->primeiro_encontro.dia = tmp->info->primeiro_encontro.dia;
-    novo->info->primeiro_encontro.mes = tmp->info->primeiro_encontro.mes;
-    novo->info->primeiro_encontro.ano = tmp->info->primeiro_encontro.ano;
-    // local_primeiro_encontro
+    novo->info->ano_primeiro_encontro = tmp->info->ano_primeiro_encontro;
     strcpy(novo->info->local_primeiro_encontro,
            tmp->info->local_primeiro_encontro);
-    // tipo de relacao
-    strcpy(novo->info->tipo_relacao, tmp->info->tipo_relacao);
-    if (strcmp(novo->info->tipo_relacao, "T"))
+    novo->info->tipo_relacao= tmp->info->tipo_relacao;
+    if (novo->info->tipo_relacao== 'T')
       strcpy(novo->info->local_com, tmp->info->local_trab);
-    else if (strcmp(novo->info->tipo_relacao, "C"))
+    else if (novo->info->tipo_relacao== 'C')
       strcpy(novo->info->local_com, tmp->info->local_com);
-    // observacoes
     strcpy(novo->info->observacoes, tmp->info->observacoes);
 
     novo->info->excluir = false;
@@ -266,7 +246,7 @@ Node *incluirContato(Node *lst) {
   scanf(" %[^\n]", novo->info->nome);
   printf("Apelido: ");
   scanf(" %[^\n]", novo->info->apelido);
-  printf("Sexo: ");
+  printf("Sexo ('M'/'F'): ");
   scanf(" %c", &novo->info->sexo);
   printf("\nendereco:\n-rua: ");
   scanf(" %[^\n]", novo->info->rua);
@@ -288,20 +268,19 @@ Node *incluirContato(Node *lst) {
   scanf("%d", &novo->info->tel_comercial);
   printf("telefone celular: ");
   scanf("%d", &novo->info->tel_celular);
-  printf("aniversario: ");
+  printf("aniversario (dd/mm/aaaa): ");
   scanf(" %d/%d/%d", &novo->info->aniversario.dia, &novo->info->aniversario.mes,
         &novo->info->aniversario.ano);
-  printf("data primeiro encontro: ");
-  scanf(" %d/%d/%d", &novo->info->primeiro_encontro.dia,
-        &novo->info->primeiro_encontro.mes, &novo->info->primeiro_encontro.ano);
-  printf("local primeiro encontro: ");
+  printf("ano primeiro encontro: ");
+  scanf(" %d", &novo->info->ano_primeiro_encontro);
+  printf("local primeiro encontro ('EB'- ensino basico,'EM' - ensino medio,'FA' - faculdade,'LT' - locais de trabalho): ");
   scanf(" %[^\n]", novo->info->local_primeiro_encontro);
-  printf("tipo de relacao: ");
-  scanf(" %[^\n]", novo->info->tipo_relacao);
-  if (strcmp(novo->info->tipo_relacao, "T") == 0) {
+  printf("tipo de relacao ('A'- amigo,'P' - parente,'C' - comercial,'T' - trabalho): ");
+  scanf(" %c", &novo->info->tipo_relacao);
+  if (novo->info->tipo_relacao== 'T') {
     printf("local de trabalho : ");
     scanf(" %[^\n]", novo->info->local_trab);
-  } else if (strcmp(novo->info->tipo_relacao, "C") == 0) {
+  } else if (novo->info->tipo_relacao== 'C') {
     printf("local de comercio : ");
     scanf(" %[^\n]", novo->info->local_com);
   }
@@ -313,17 +292,6 @@ Node *incluirContato(Node *lst) {
   novo->prox = lst;
   return novo;
 }
-// void exibeDadosContato(Node *lst) {
-//   printf("INFORMACOES DOS CONTATOS LISTADOS\n");
-//   Node *p = lst;
-//   while (p != NULL) {
-//     printf("id:%d | nome: %s | telefone celular: %d |
-//     %d/%d/%d\n",p->info->id, p->info->nome,
-//            p->info->tel_celular, p->info->aniversario.dia,
-//            p->info->aniversario.mes, p->info->aniversario.ano);
-//     p = p->prox;
-//   }
-// }
 void exibeDadosContato(Node *lst, int dia, int mes, int ano) {
   printf("\nINFORMACOES DOS CONTATOS LISTADOS\n");
   exibeDadosContatos(lst);
@@ -341,39 +309,32 @@ void exibeDadosContatos(Node *lst) {
     p = p->prox;
   }
 }
-
 void exibe3em3(Contato *lst) {
-  printf("id: %d | nome: %s | apelido: %s \n", lst->id, lst->nome,
-         lst->apelido);
+  printf("id: %d | nome: %s | apelido: %s \n", lst->id, lst->nome,lst->apelido);
   printf("sexo: %c | rua: %s | numero: %d\n", lst->sexo, lst->rua, lst->numero);
-  printf("complemento: %s | bairro: %s | cidade: %s\n", lst->complemento,
-         lst->bairro, lst->cidade);
-  printf("uf: %s | cep: %d | telefone residencia: %d\n", lst->uf, lst->cep,
-         lst->tel_residencia);
-  printf(
-      "telefone comercial: %d | telefone celular: %d | aniversario: %d/%d/%d\n",
+  printf("complemento: %s | bairro: %s | cidade: %s\n", lst->complemento,lst->bairro, lst->cidade);
+  printf("uf: %s | cep: %d | telefone residencia: %d\n", lst->uf, lst->cep,lst->tel_residencia);
+  printf("telefone comercial: %d | telefone celular: %d | aniversario: %d/%d/%d\n",
       lst->tel_comercial, lst->tel_celular, lst->aniversario.dia,
       lst->aniversario.mes, lst->aniversario.ano);
-  printf("data do primeiro encontro: %d/%d/%d | local do primeiro encontro: %s "
-         "| tipo de relacao: %s\n",
-         lst->primeiro_encontro.dia, lst->primeiro_encontro.mes,
-         lst->primeiro_encontro.ano, lst->local_primeiro_encontro,
+  printf("ano do primeiro encontro: %d | local do primeiro encontro: %s "
+         "| tipo de relacao: %c\n",
+         lst->ano_primeiro_encontro, lst->local_primeiro_encontro,
          lst->tipo_relacao);
-  if (strcmp(lst->tipo_relacao, "Trabalho") == 0)
+  if (lst->tipo_relacao=='T')
     printf("local do trabalho: %s | ", lst->local_trab);
-  else if (strcmp(lst->tipo_relacao, "C") == 0)
+  else if (lst->tipo_relacao=='C')
     printf("local do comercio: %s | ", lst->local_com);
   printf("observacoes: %s | excluir: %d\n", lst->observacoes, lst->excluir);
 }
 void exibeDadosParentes(Node *lst) {
   Node *p = lst;
   while (p != NULL) {
-    if (strcmp(p->info->tipo_relacao, "P") == 0)
+    if (p->info->tipo_relacao=='P')
       exibe3em3(p->info);
     p = p->prox;
   }
 }
-
 void exibeAniversariantesMes(Node *lst, int mes) {
   Node *p = lst;
   while (p != NULL) {
@@ -382,7 +343,6 @@ void exibeAniversariantesMes(Node *lst, int mes) {
     p = p->prox;
   }
 }
-
 void consultaAniversariantes(Node *lst, int dia, int mes, int ano) {
   Node *p = lst;
   while (p != NULL) {
@@ -392,7 +352,6 @@ void consultaAniversariantes(Node *lst, int dia, int mes, int ano) {
     p = p->prox;
   }
 }
-// corrigir -> passar para 4 bin e corrigir o open
 void geraArquivoBackUp(Node *lst) {
 
   FILE *arqSaidaA = openFile("calendarioA.dat", "wb");
@@ -403,17 +362,24 @@ void geraArquivoBackUp(Node *lst) {
   Node *p = lst;
   while (p != NULL) {
     if (p->info->excluir == false) {
-      if (strcmp(p->info->tipo_relacao, "A") == 0)
-        fwrite(p->info, sizeof(Contato), 1, arqSaidaA);
-      else if (strcmp(p->info->tipo_relacao, "P") == 0)
-        fwrite(p->info, sizeof(Contato), 1, arqSaidaP);
-      else if ((strcmp(p->info->tipo_relacao, "C") == 0))
-        fwrite(p->info, sizeof(Contato), 1, arqSaidaC);
-      else if (strcmp(p->info->tipo_relacao, "Trabalho") == 0)
-        fwrite(p->info, sizeof(Contato), 1, arqSaidaT);
-      else
-        printf("ERROR");
+      switch(p->info->tipo_relacao){
+      case 'A':
+      fwrite(p->info, sizeof(Contato), 1, arqSaidaA);
+      break;
+      case 'P':
+      fwrite(p->info, sizeof(Contato), 1, arqSaidaP);
+      break;
+      case 'C':
+      fwrite(p->info, sizeof(Contato), 1, arqSaidaC);
+      break;
+      case 'T':
+      fwrite(p->info, sizeof(Contato), 1, arqSaidaT);
+      break;
+      default:
+      printf("ERROR");
+      }
     }
+    
     p = p->prox;
   }
   fclose(arqSaidaA);
@@ -441,7 +407,7 @@ void geraArquivo(Node *lst) {
   }
   fclose(arqSaida);
 }
-//
+
 int consultaNome(Node *lst, char *nomeInput) {
   Node *p = lst;
   int c = 0;
@@ -475,11 +441,11 @@ void consultaMesAniv(Node *lst, int mesInput) {
   if (c == 0)
     printf("nao existe nenhum contato no sistema com essas definicoes");
 }
-void consultaTipoRelacao(Node *lst, char *tipoRelacaoInput) {
+void consultaTipoRelacao(Node *lst, char tipoRelacaoInput) {
   Node *p = lst;
   int c = 0;
   while (p != NULL) {
-    if (strcmp(p->info->tipo_relacao, tipoRelacaoInput) == 0) {
+    if (p->info->tipo_relacao==tipoRelacaoInput) {
       printf("nome : %s\n", p->info->nome);
       c = 1;
     }
@@ -489,12 +455,11 @@ void consultaTipoRelacao(Node *lst, char *tipoRelacaoInput) {
   if (c == 0)
     printf("nao existe nenhum contato no sistema com essas definicoes");
 }
-void consultaTipoRelacaoEMesAniv(Node *lst, char *tipoRelacaoInput,
-                                 int mesInput) {
+void consultaTipoRelacaoEMesAniv(Node *lst, char tipoRelacaoInput,int mesInput) {
   Node *p = lst;
   int c = 0;
   while (p != NULL) {
-    if (strcmp(p->info->tipo_relacao, tipoRelacaoInput) == 0 &&
+    if (p->info->tipo_relacao==tipoRelacaoInput &&
         p->info->aniversario.mes == mesInput) {
       printf("nome : %s\n", p->info->nome);
       c = 1;
@@ -504,7 +469,6 @@ void consultaTipoRelacaoEMesAniv(Node *lst, char *tipoRelacaoInput,
   if (c == 0)
     printf("nao existe nenhum contato no sistema com essas definicoes");
 }
-//
 Node *alteraNome(Node *lst, char *nome) {
   Node *p = lst;
   while (p != NULL) {
@@ -555,90 +519,89 @@ Node *altera(Node *lst) {
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->nome, tmp);
   
-  printf("Apelido: ");
+  printf("apelido atual: %s | Apelido: ",p->info->apelido);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->apelido, tmp);
   
-  printf("Sexo: ");
+  printf("sexo atual: %c | Sexo: ",p->info->sexo);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) p->info->sexo = tmp[0];
   
-  printf("\nendereco:\n-rua: ");
+  printf("endereco:\n-rua atual: %s | rua: ",p->info->rua);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->rua, tmp);
   
-  printf("-numero: ");
+  printf("-numero atual: %d | numero: ",p->info->numero);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) p->info->numero = atoi(tmp);
   
-  printf("-complemento: ");
+  printf("-complemento atual: %s | complemento: ",p->info->complemento);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->complemento, tmp);
   
-  printf("-bairro: ");
+  printf("-bairro atual: %s | bairro: ",p->info->bairro);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->bairro, tmp);
   
-  printf("-cidade: ");
+  printf("-cidade atual: %s | cidade: ",p->info->cidade);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->cidade, tmp);
   
-  printf("-uf: ");
+  printf("-uf atual: %s | uf: ",p->info->uf);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->uf, tmp);
   
-  printf("-cep: ");
+  printf("-cep atual: %d | cep: ",p->info->cep);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) p->info->cep = atoi(tmp);
   
-  printf("telefone residencial: ");
+  printf("telefone residencial atual: %d | telefone residencial: ",p->info->tel_residencia);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) p->info->tel_residencia = atoi(tmp);
   
-  printf("telefone comercial: ");
+  printf("telefone comercial atual: %d | telefone comercial: ",p->info->tel_comercial);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) p->info->tel_comercial = atoi(tmp);
   
-  printf("telefone celular: ");
+  printf("telefone celular atual: %d | telefone celular: ",p->info->tel_celular);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) p->info->tel_celular = atoi(tmp);
   
-  printf("aniversario: ");
+  printf("aniversario atual: %d/%d/%d | aniversario: ",p->info->aniversario.dia,p->info->aniversario.mes,p->info->aniversario.ano);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) {
     converteDataNascimento(tmp,&p->info->aniversario);
     }
   
-  printf("data primeiro encontro: ");
+  printf("ano primeiro encontro atual: %d | ano primeiro encontro: ",p->info->ano_primeiro_encontro);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) {
-    converteDataNascimento(tmp,&p->info->primeiro_encontro);
+    p->info->ano_primeiro_encontro = atoi(tmp);
     }
   
-  printf("local primeiro encontro: ");
+  printf("local primeiro encontro atual: %s | local primeiro encontro: ",p->info->local_primeiro_encontro);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->local_primeiro_encontro, tmp);
   
-  printf("tipo de relacao: ");
+  printf("tipo de relacao atual: %c | tipo de relacao: ",p->info->tipo_relacao);
   scanf(" %[^\n]", tmp);
-  if (strcmp(tmp, "-") != 0) strcpy(p->info->tipo_relacao, tmp);
+  if (strcmp(tmp, "-") != 0) p->info->tipo_relacao=tmp[0];
   
-  if (strcmp(p->info->tipo_relacao, "T") == 0) {
-    printf("local de trabalho : ");
+  if (p->info->tipo_relacao=='T') {
+    printf("local de trabalho atual: %s | local de trabalho : ",p->info->local_trab);
     scanf(" %[^\n]", tmp);
     if (strcmp(tmp, "-") != 0) strcpy(p->info->local_trab, tmp);
-  } else if (strcmp(p->info->tipo_relacao, "C") == 0) {
-    printf("local de comercio : ");
+  } else if (p->info->tipo_relacao=='C') {
+    printf("local de comercio atual: %s | local de comercio : ",p->info->local_com);
     scanf(" %[^\n]", tmp);
     if (strcmp(tmp, "-") != 0) strcpy(p->info->local_com, tmp);
   }
-  printf("observacoes: ");
+  printf("observacoes atual: %s | observacoes: ",p->info->observacoes);
   scanf(" %[^\n]", tmp);
   if (strcmp(tmp, "-") != 0) strcpy(p->info->observacoes, tmp);
   
   return lst;
 }
-//
 Node *excluiNome(Node *lst, char *nome) {
   Node *p = lst;
   while (p != NULL) {
@@ -681,7 +644,6 @@ Node *excluirContato(Node *lst) {
   }
   return lst; // nao deleto por nao existir nome
 }
-//
 void display_menu(void) {
   printf("\nMENU:\n");
   printf("1 - Inserir\n");
@@ -713,7 +675,6 @@ void printprint(void) {
   printf("26\t27\t27\t28\t29\t30\t1\n");
   printf("---------------------------\n\n");
 }
-
 int retornaCodigo(Node *lst) {
   int maior_codigo = 0; // maior codigo
   Node *p = lst;
@@ -725,7 +686,6 @@ int retornaCodigo(Node *lst) {
   maior_codigo++;
   return maior_codigo;
 }
-
 void converteDataNascimento(char *data, Data * d) {;
   char dia[3],mes[3],ano[5];
   dia[0] = *(data);
